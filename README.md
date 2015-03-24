@@ -16,5 +16,5 @@ For example `print` function may be called like:
 No more brackets.   
 No more semicolons at end of line.   
 
-But how to separate different function arguments?   
-Maybe like that?   `print: "Your name is ", input: "Enter your name: "; "."`
+But how to separate different function arguments? 
+It can be done like that:   `print: "Your name is ", input: "Enter your name: "; "."`
