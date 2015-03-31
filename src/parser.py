@@ -116,7 +116,7 @@ def evaluate(toks):
         
         i += 1
     
-    if string:
+    if string == 1 or expr == "":
         return "STR:" + parseString(expr)
     else:
         try:
@@ -320,6 +320,8 @@ def parse(toks):
                 if tokType(vars[name]) == "NUM":
                     """ Number increase """
                     
+                    mode = toks[i+1]
+                    
                     expr = ""
                     r = getArgs(getUnless(toks, "NEWLN", i+2))
                     i = getUnlessIndex(toks, "NEWLN", i+2) - 2
@@ -327,7 +329,7 @@ def parse(toks):
                     for o in r:
                         expr += o
                     
-                    if toks[i+1] == "APPEND":
+                    if mode == "APPEND":
                         vars[name] = "NUM:" + splitNum(str(eval(strip(vars[name][4:]) + "+" + strip(expr))))
                     else:
                         vars[name] = "NUM:" + splitNum(str(eval(strip(vars[name][4:]) + "-" + strip(expr))))
