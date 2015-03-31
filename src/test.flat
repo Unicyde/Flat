@@ -1,0 +1,7 @@
+pi = 3.14
+r = input: "Enter the circle radius (in cm): "
+
+circuit = 2 * pi * r
+volume = pi * r ^ 2
+
+print: "Circuit is: {circuit} cm\nVolume is: {volume} cm²"
