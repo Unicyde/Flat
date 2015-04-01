@@ -30,9 +30,7 @@ def process(toks, minimal=0):
                 pass
             
             if toks[i][4:] == "--" or toks[i][4:] == "---":
-                del toks[i]
-                while toks[i] != "NEWLN":
-                    del toks[i]
+                del toks[i:getUnlessIndex(toks, "NEWLN", i)]
             
             if len(toks) > i+1 and tokType(toks[i+1]) == "NUM":
                 if toks[i+1][4:] == "--" or toks[i+1][4:] == "---":
