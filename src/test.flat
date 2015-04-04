@@ -1,9 +1,9 @@
-pi = 3.14
-r = input: "Enter the circle radius (in cm): "
+age = input: "Enter your age: "
 
-circuit = 2 * pi * r
-volume = pi * r ^ 2
-
-print: "Circuit is: {circuit} cm\nVolume is: {volume} cm²"
-
---- Comment by me 1234!
+if age >= 18:
+    if age < 50:
+        print: "Well done, you're an adult!"
+    else:
+    	print: "Good day senior!"
+else:
+    print: "Hi child!"

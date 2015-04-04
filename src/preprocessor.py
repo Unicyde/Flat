@@ -16,6 +16,12 @@ def process(toks, minimal=0):
                     toks[i] = "DEAPPEND"
                     del toks[i+1]
                     continue
+            elif toks[i][4:] == "e" and tokType(toks[i+1]) == "SYM":
+                toks[i] = "SYM:e" + toks[i+1][4:]
+                del toks[i+1]
+                if toks[i][4:] in tokenSpec:
+                    toks[i] = tokenSpec[toks[i][4:]]
+                continue
             
             toks[i] = "NUM:" + strip(toks[i][4:])
                 
@@ -55,6 +61,12 @@ def process(toks, minimal=0):
                     """ It will be evaluated in runtime """
                 else:
                     raise TypeError("String and {0} can't be appended!".format(tokType(toks[i+2])))
+        
+        elif toks[i] == "GT" or toks[i] == "LT":
+            if len(toks) > i+1 and toks[i+1] == "EQ":
+                del toks[i+1]
+                toks[i] = toks[i] + "EQ"
+                continue
         
         i += 1
     

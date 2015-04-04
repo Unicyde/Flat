@@ -1,7 +1,15 @@
 import re
 from sys import *
 
-tokenSpec = {":": "COLON", ";": "SEMI", "=": "EQ", "<": "LT", ">": "GT", ",": "COMMA"}
+opSpec = {":": "COLON", ";": "SEMI", "=": "EQ", "<": "LT", ">": "GT", ",": "COMMA"}
+keySpec = {"if": "IF", "else": "ELSE", "elif": "ELIF", "and": "AND", "or": "OR"}
+
+tokenSpec = {}
+tokenSpec.update(opSpec)
+tokenSpec.update(keySpec)
+
+tokList = ["COLON", "SEMI", "COMMA", "EQ", "LT", "GT", "LTEQ", "GTEQ", "IF", "ELSE", "ELIF", "AND", "OR"]
+operators = ["EQ", "LT", "GT", "LTEQ", "GTEQ", "NOTEQ"]
 
 literals = ["STR", "NUM", "BOOL"]
 
@@ -46,8 +54,10 @@ def generateType(string):
         else:
             if isNum(string):
                 return "NUM:" + string
-            else:
+            elif string not in tokList:
                 return "STR:" + string
+            else:
+                return string
 
 def tokType(token):
     if type(token) is str:
@@ -68,6 +78,18 @@ def tokType(token):
     else:
         raise TypeError("Unsupported type {0}, expecting List or String!".format(type(token)))
 
+
+def getKeyByVal(d, val):
+    for k, v in d.items():
+        if v == val:
+            return k
+    return val
+
+def generateString(toks):
+    string = ""
+    for t in toks:
+        string += getKeyByVal(tokenSpec, t) + " "
+    return string
 
 def strip(num):
     return re.sub(" +", "", num)

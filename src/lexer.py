@@ -3,22 +3,29 @@ from utils import *
 tokens = []
 indent = 0
 
+spaceCount = 0
+
 def countIndent(line):
     global indent
     global tokens
+    global spaceCount
 
-    ind = len(line) - len(line.lstrip("\t"))
+    ind = len(line) - len(line.lstrip(" "))
+    
+    if spaceCount == 0:
+        raise Exception("You need to specify amount of spaces!")
 
     if ind != indent:
         if ind > indent:
-            while ind - indent != 0:
-                indent += 1
+            while ind - indent > 0:
+                indent += spaceCount
                 tokens.append("INDENT")
 
         elif ind < indent:
-            while indent - ind != 0:
-                indent -= 1
+            while indent - ind > 0:
+                indent -= spaceCount
                 tokens.append("DEDENT")
+                
 
 def lex(data):
     data = splitByNewline(data)
@@ -81,6 +88,18 @@ def lex(data):
             elif tok in tokenSpec:
                 tokens.append(tokenSpec[tok])
                 tok = ""
+            
+            elif tok == "if":
+                tokens.append("IF")
+                tok = ""
+            
+            elif tok == "else":
+                tokens.append("ELSE")
+                tok = ""
+            
+            elif tok == "elif":
+                tokens.append("ELIF")
+                tok = ""
 
             i += 1
         if num != "":
@@ -98,7 +117,7 @@ def lex(data):
 
     if indent > 0:
         while indent != 0:
-            indent -= 1
+            indent -= spaceCount
             tokens.append("DEDENT")
 
     return tokens

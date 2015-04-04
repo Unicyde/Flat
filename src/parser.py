@@ -1,6 +1,9 @@
 import sys
+import ast
+
 from utils import *
 from lexer import lex
+from booleans import *
 from preprocessor import process
 
 builtins = ["print", "input"]
@@ -123,7 +126,56 @@ def evaluate(toks):
             return "NUM:" + str(eval(strip(expr)))
         except:
             return "NUM:" + strip(expr)
-            #raise SyntaxError("Can't evaluate {0}!".format(expr))
+
+
+
+# Boolean condition parser
+
+def condition(cond):
+    final = []
+    a = ""
+    b = ""
+    o = ""
+    i = 0
+    while i < len(cond):
+        if tokType(cond[i]):
+            a = cond[i]
+            if len(cond) > i+1 and cond[i+1] in operators:
+                o = cond[i+1]
+                if len(cond) > i+2 and tokType(cond[i+2]):
+                    b = cond[i+2]
+                    
+                    if o == "EQ":
+                        final.append(str(a == b))
+                    elif o == "LT":
+                        if tokType(a) != "NUM" or tokType(b) != "NUM":
+                            raise TypeError("Can't apply integer operator to %s and %s!" % (tokType(a), tokType(b)))
+                        final.append(str(float(a[4:]) < float(b[4:])))
+                    elif o == "GT":
+                        if tokType(a) != "NUM" or tokType(b) != "NUM":
+                            raise TypeError("Can't apply integer operator to %s and %s!" % (tokType(a), tokType(b)))
+                        final.append(str(float(a[4:]) > float(b[4:])))
+                    elif o == "LTEQ":
+                        if tokType(a) != "NUM" or tokType(b) != "NUM":
+                            raise TypeError("Can't apply integer operator to %s and %s!" % (tokType(a), tokType(b)))
+                        final.append(str(float(a[4:]) <= float(b[4:])))
+                    elif o == "GTEQ":
+                        if tokType(a) != "NUM" or tokType(b) != "NUM":
+                            raise TypeError("Can't apply integer operator to %s and %s!" % (tokType(a), tokType(b)))
+                        final.append(str(float(a[4:]) >= float(b[4:])))
+                    elif o == "NOTEQ":
+                        final.append(str(a != b))
+        elif cond[i] in ["AND", "OR"]:
+            final.append(cond[i])
+        
+        i += 1
+    
+    if len(final) == 1:
+        return final[0]
+    else:
+        return bool_eval(generateString(final))
+
+
 
 # Inner functions
 
@@ -275,6 +327,8 @@ def getArgs(params, t=""):
                 s = s * int(j)
             
             args.append(parseString(s))
+        else:
+            args.append(params[i])
             
 
         comma = 1
@@ -289,6 +343,7 @@ def getArgs(params, t=""):
 ### Parsing function ###
 
 def parse(toks):
+    indent = []
     i = 0
     while i < len(toks):
         if tokType(toks[i]) == "SYM":
@@ -365,6 +420,53 @@ def parse(toks):
 
             else:
                 raise SyntaxError("Unexpected token {0} - expecting a '=' or ':'!".format(toks[i+1]))
+        
+        elif toks[i] == "IF":
+            r = getUnless(toks, "NEWLN", i)
+            i = getUnlessIndex(toks, "NEWLN", i) + 2
+            
+            if r[-1] != "COLON":
+                raise SyntaxError("Syntax for 'if' is: 'if condition:'!")
+            
+            cond = r[1:-1]
+            cond = generateType(getArgs(addAll(cond, "COMMA")))
+            b = ast.literal_eval(condition(cond))
+            
+            if b:
+                indent.insert(0, 1)
+                continue
+            else:
+                bl = 1
+                while bl != 0:
+                    if toks[i] == "INDENT":
+                        bl += 1
+                    elif toks[i] == "DEDENT":
+                        bl -= 1
+                    i += 1
+                indent.insert(0, 0)
+                continue
+        
+        elif toks[i] == "ELSE":
+            if indent[0] == -1:
+                raise SyntaxError("Else without if!")
+            elif indent[0] == 1:
+                if len(toks) > i+1 and toks[i+1] != "COLON":
+                    raise SyntaxError("Expecting ':' after 'else'!")
+                i = getUnlessIndex(toks, "DEDENT", i)
+                del indent[0]
+            else:
+                if len(toks) > i+1 and toks[i+1] == "COLON":
+                    i += 1
+                    del indent[0]
+                else:
+                    raise SyntaxError("Expecting ':' after 'else'!")
+        
+        elif toks[i] == "INDENT":
+            if len(indent) > 0 and indent[0] == -1:
+                raise SyntaxError("Unexpected indent!")
+        
+        elif toks[i] == "DEDENT":
+            pass
 
         elif toks[i] == "NEWLN":
             pass
