@@ -1,12 +1,10 @@
-age = input: "Enter your age: "
+msg = input: "Don't say hello to world: "
+target = input: "Enter the target of message: "
 
-if age >= 18:
-    if age < 50:
-        print: "Well done, you're an adult!"
+if msg = "Hello" or msg = "Hi" or msg = "Welcome":
+    if target = "world":
+        print: "I said 'Don't say hello to world!'"
     else:
-        print: "Good day senior!"
+        print: "'{msg} {target}' is correct!"
 else:
-    if age <= 0:
-        print: "Your choice is invalid, you can't be under 1!"
-    else:
-        print: "Hi child!"
+    print: "'{msg} {target}' is correct!"

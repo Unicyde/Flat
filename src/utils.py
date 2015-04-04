@@ -45,6 +45,11 @@ def splitByNewline(string):
 
 
 
+def toBool(string):
+    if type(string) is bool:
+        return string
+    return string.lower() in ["yes", "true", "1", "on"]
+
 def generateType(string):
     if type(string) is list:
         return [generateType(x) for x in string]

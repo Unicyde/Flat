@@ -430,7 +430,7 @@ def parse(toks):
             
             cond = r[1:-1]
             cond = generateType(getArgs(addAll(cond, "COMMA")))
-            b = ast.literal_eval(condition(cond))
+            b = toBool(condition(cond))
             
             if b:
                 indent.insert(0, 1)
