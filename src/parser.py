@@ -434,7 +434,6 @@ def parse(toks):
             
             if b:
                 indent.insert(0, 1)
-                continue
             else:
                 bl = 1
                 while bl != 0:
@@ -444,16 +443,27 @@ def parse(toks):
                         bl -= 1
                     i += 1
                 indent.insert(0, 0)
-                continue
+            i -= 1
         
         elif toks[i] == "ELSE":
-            if indent[0] == -1:
+            if len(indent) == 0:
                 raise SyntaxError("Else without if!")
             elif indent[0] == 1:
                 if len(toks) > i+1 and toks[i+1] != "COLON":
                     raise SyntaxError("Expecting ':' after 'else'!")
-                i = getUnlessIndex(toks, "DEDENT", i)
+                
+                bl = 1
+                i += 4
+                
+                while bl != 0:
+                    if toks[i] == "INDENT":
+                        bl += 1
+                    elif toks[i] == "DEDENT":
+                        bl -= 1
+                    i += 1
+                
                 del indent[0]
+                i -= 2
             else:
                 if len(toks) > i+1 and toks[i+1] == "COLON":
                     i += 1

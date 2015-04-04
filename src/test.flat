@@ -4,6 +4,9 @@ if age >= 18:
     if age < 50:
         print: "Well done, you're an adult!"
     else:
-    	print: "Good day senior!"
+        print: "Good day senior!"
 else:
-    print: "Hi child!"
+    if age <= 0:
+        print: "Your choice is invalid, you can't be under 1!"
+    else:
+        print: "Hi child!"
