@@ -68,6 +68,11 @@ def process(toks, minimal=0):
                 toks[i] = toks[i] + "EQ"
                 continue
         
+        elif toks[i] == "ELIF":
+            toks[i] = "ELSE"
+            toks.insert(i+1, "IF")
+            continue
+        
         i += 1
     
     return toks

@@ -449,7 +449,7 @@ def parse(toks):
             if len(indent) == 0:
                 raise SyntaxError("Else without if!")
             elif indent[0] == 1:
-                if len(toks) > i+1 and toks[i+1] != "COLON":
+                if len(toks) > i+1 and toks[i+1] != "COLON" and toks[i+1] != "IF":
                     raise SyntaxError("Expecting ':' after 'else'!")
                 
                 bl = 1
@@ -467,6 +467,8 @@ def parse(toks):
             else:
                 if len(toks) > i+1 and toks[i+1] == "COLON":
                     i += 1
+                    del indent[0]
+                elif len(toks) > i+1 and toks[i+1] == "IF":
                     del indent[0]
                 else:
                     raise SyntaxError("Expecting ':' after 'else'!")
