@@ -10,11 +10,37 @@ But it has got syntax different from all other languages:
 
 ### Functions:
 Functions can be called like that:
-`function: arg, arg`
+`function: arg1, arg2, ..., argn`
 For example `print` function may be called like:   
 `print: "Hello world, the magic number is ", 3.14159265`   
 No more brackets.   
 No more semicolons at end of line.   
 
-But how to separate different function arguments? 
+But how to separate different function arguments?     
 It can be done like that:   `print: "Your name is ", input: "Enter your name: "; "."`
+
+### Taking input and variables:
+Variables are declared automaticly: `myVar = "something"`    
+Input is passed by showing message to user: `usrInput = input: "Enter something: "`
+
+### If...elif...else:
+The main syntax is:   
+```python
+if condition:  
+    print: "YES"   
+elif anotherCondition:   
+    print: "A-bit-less YES"   
+else:    
+    print: "NO"
+```   
+You can also use advanced expressions:    
+```python
+if (True and True or True or False) or False:
+    some code
+```    
+***COMING SOON***    
+*I will soon implement multiple eqanations:*   
+```python
+if name = "John" or "Thomas" or "Paul" and surname = "Ross":
+    some code
+```    
