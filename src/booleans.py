@@ -5,7 +5,7 @@ str_to_token = {'True':True,
                 '(':'(',
                 ')':')'}
 
-empty_res = True
+empty_res = False
 
 
 def create_token_lst(s, str_to_token=str_to_token):
@@ -41,7 +41,13 @@ def parens(token_lst):
 def r_bool_eval(token_lst):
     """token_lst has length 3 and format: [left_arg, operator, right_arg]
     operator(left_arg, right_arg) is returned"""
-    return token_lst[1](token_lst[0], token_lst[2])
+    if len(token_lst) == 1:
+        return token_lst[0]
+    else:
+        token_lst[0] = token_lst[1](token_lst[0], token_lst[2])
+        del token_lst[1:3]
+        
+        return r_bool_eval(token_lst)
 
 
 def formatted_bool_eval(token_lst, empty_res=empty_res):
@@ -64,7 +70,7 @@ def formatted_bool_eval(token_lst, empty_res=empty_res):
 
 def bool_eval(s):
     """The actual 'eval' routine,
-    if 's' is empty, 'True' is returned,
+    if 's' is empty, 'False' is returned,
     otherwise 's' is evaluated according to parentheses nesting.
     The format assumed:
         [1] 'LEFT OPERATOR RIGHT',

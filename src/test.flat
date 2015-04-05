@@ -1,10 +1,7 @@
 msg = input: "Don't say hello to world: "
 target = input: "Enter the target of message: "
 
-if msg = "Hello" or msg = "Hi" or msg = "Welcome":
-    if target = "world":
-        print: "I said 'Don't say hello to world!'"
-    else:
-        print: "'{msg} {target}' is correct!"
+if (msg = "Hello" or msg = "Hi" or msg = "Good day" or msg = "Welcome") and target = "world":
+    print: "I said 'Don't say hello to world!'"
 else:
     print: "'{msg} {target}' is correct!"
