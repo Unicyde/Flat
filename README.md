@@ -2,7 +2,18 @@
 Simple programming language to match your goals.
 
 ## Installation
-  * *Comming soon*
+
+### From source
+* Download the source code.
+* Create file with any extenstion or just use the test.flat file.
+* Launch cmd.exe/Terminal.
+* Make sure that you have Python 3.x installed.
+* Type `python3 path/to/source/flat.py path/to/test.someext -4`.
+* The last flag/argument represents amount of spaces used for indentation.
+* Enjoy some nice output or not-so-nice errors.
+
+### From binary
+* ***COMING SOON***
 
 ## About the language:
 Flat is a Python-like language with dynamic type system, indentation structuring and is case-sensitive.
