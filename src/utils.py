@@ -1,7 +1,7 @@
 import re
 from sys import *
 
-opSpec = {":": "COLON", ";": "SEMI", "=": "EQ", "<": "LT", ">": "GT", ",": "COMMA"}
+opSpec = {":": "COLON", ";": "SEMI", "=": "EQ", "<": "LT", ">": "GT", ",": "COMMA", "[": "LS", "]": "RS"}
 keySpec = {"if": "IF", "else": "ELSE", "elif": "ELIF", "and": "AND", "or": "OR"}
 
 tokenSpec = {}
@@ -127,7 +127,7 @@ def getUnless(toks, stop, start=0):
     out = []
 
     if i >= len(toks):
-        raise IndexError("List index out of range - %i, max %i!" % i, len(toks))
+        raise IndexError("List index out of range - %i, max %i!" % (i, len(toks)))
 
     while i < len(toks) and toks[i] != stop:
         out.append(toks[i])
@@ -139,7 +139,7 @@ def getUnlessIndex(toks, stop, start=0):
     i = start
     
     if i >= len(toks):
-        raise IndexError("List index out of range - %i, max %i!" % i, len(toks))
+        raise IndexError("List index out of range - %i, max %i!" % (i, len(toks)))
     
     while i < len(toks) and toks[i] != stop:
         i += 1

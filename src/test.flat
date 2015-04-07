@@ -1,17 +1,3 @@
-age = input: "Enter your age: "
+num = 1000
 
-if age > 0:
-    if age <= 10:
-        print: "You're a child!"
-    elif age <= 17:
-        print: "You're teen!"
-    elif age <= 64:
-        print: "You're adult!"
-    elif age <= 90:
-        print: "You're senior!"
-    elif age <= 120:
-        print: "You're REALLY old, congratulations for your venerable age!"
-    else:
-        print: "INVALID: You can't be above 120!"
-else:
-    print: "INVALID: You can't be under 1!"
+print: num[num:]

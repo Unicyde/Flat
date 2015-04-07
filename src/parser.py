@@ -179,6 +179,71 @@ def condition(cond):
 
 # Inner functions
 
+def slicer(r, i, s, o=0):
+    if "COLON" not in r:
+        r1 = getUnless(r, "RS", i)
+        i = len(r)
+        
+        if o == 1:
+            return i
+        
+        i1 = evaluate(r1)
+        
+        if tokType(s) == "STR":
+            s = s[4:]
+            if tokType(i1) != "NUM":
+                raise TypeError("Strings can be only sliced by numbers, found %s!" % tokType(i1))
+            i1 = int(i1[4:])
+            if i1 >= len(s):
+                raise IndexError("Maximal index is %i, found %i!" % (len(s)-1, i1))
+            
+            return s[i1]
+        elif tokType(s) == "NUM":
+            s = s[4:]
+            i1 = int(i1[4:])
+            if i1 % 10 != 0:
+                raise ValueError("Numbers can be only sliced by power of 10, found %i!" % i1)
+            return s[-(str(i1).count("0"))]
+    else:
+        r1 = getUnless(r, "COLON", i)
+        i = getUnlessIndex(r, "COLON", i)
+        r2 = getUnless(r, "RS", i+1)
+        i = getUnlessIndex(r, "RS", i+1)
+        
+        if o == 1:
+            return i
+        
+        i1 = evaluate(r1)
+        i2 = evaluate(r2)
+        
+        if tokType(s) == "STR":
+            s = s[4:]
+            if i1[4:] == "":
+                i1 = "NUM:0"
+            
+            if tokType(i1) != "NUM":
+                raise TypeError("Strings can be sliced by numbers, found %s!" % tokType(i1))
+            elif i2[4:] == "":
+                return s[int(i1[4:]):]
+            elif tokType(i2) != "NUM":
+                raise TypeError("Strings can be sliced by numbers, found %s!" % tokType(i2))
+            else:
+                return s[int(i1[4:]):int(i2[4:])]
+        elif tokType(s) == "NUM":
+            s = s[4:]
+            
+            if i1[4:] != "" and int(i1[4:]) % 10 != 0:
+                raise ValueError("Numbers can be only sliced by power of 10, found %s!" % i1[4:])
+            
+            if i1[4:] != "" and tokType(i1) != "NUM":
+                raise TypeError("Numbers can be sliced by numbers, found %s!" % tokType(i1))
+            elif i2[4:] == "":
+                return s[-(i1[4:].count("0")):]
+            elif tokType(i2) != "NUM":
+                raise TypeError("Numbers can be sliced by numbers, found %s!" % tokType(i2))
+            
+            return s[-(i1[4:].count("0")):-(i2[4:].count("0"))]
+
 def assign(name, value):
     vars[name] = value
 
@@ -257,14 +322,24 @@ def getArgs(params, t=""):
                 raise SyntaxError("Expecting a comma!")
 
         if tokType(params[i]) == "NUM":
-            val = ""
-            
-            r = getUnless(params, "COMMA", i)
-            
-            args.append(evaluate(r)[4:])
-            i = getUnlessIndex(params, "COMMA", i)
-            comma = 1
-            continue
+            if len(params) > i+1 and params[i+1] == "LS":
+                s = params[i]
+                bak = i
+                
+                r = generateType(slicer(params, i+2, s))
+                i = slicer(params, i+2, s, 1)
+                
+                del params[bak:i+1]
+                i = bak
+                params.insert(i, r)
+                continue
+            else:
+                r = getUnless(params, "COMMA", i)
+                
+                args.append(evaluate(r)[4:])
+                i = getUnlessIndex(params, "COMMA", i)
+                comma = 1
+                continue
         
         elif tokType(params[i]) == "SYM":
             if len(params) > i+1 and params[i+1] == "COLON":
@@ -274,6 +349,8 @@ def getArgs(params, t=""):
                 name = params[i][4:]
                 
                 r = function(name, a)
+                
+                bak = i
                 i = getUnlessIndex(params, "SEMI", i+2)
                 
                 if len(params) > i and tokType(params[i]):
@@ -284,33 +361,61 @@ def getArgs(params, t=""):
                     
                     r = "NUM:" + evaluate(expr)
                 
-                args.append(r[4:])
-                i -= 1
+                del params[bak:i+1]
+                params.insert(bak, r)
+                i = bak
+                continue
             else:
                 if params[i][4:] not in vars:
                     raise NameError("Invalid pointer {0}!".format(params[i][4:]))
-                
-                r = getUnless(params, "COMMA", i)
-                
-                if len(r) > 1:
-                    r = getArgs(addAll(r, "COMMA"))
-                    r = generateType(r)
-                    r = process(r)
-                else:
-                    args.append(vars[params[i][4:]][4:])
-                    comma = 1
-                    i += 1
+                if len(params) > i+1 and params[i+1] == "LS":
+                    s = vars[params[i][4:]]
+                    
+                    if tokType(s) != "STR" and tokType(s) != "NUM":
+                        raise TypeError("Only strings and numbers can be sliced, found %s!" % tokType(s))
+                    
+                    bak = i
+                    
+                    r = slicer(params, i+2, s)
+                    i = slicer(params, i+2, s, 1)
+                    
+                    del params[bak:i+1]
+                    i = bak
+                    params.insert(i, r)
                     continue
-                
-                args.append(evaluate(r))
-                i = getUnlessIndex(params, "COMMA", i)
-                comma = 1
+                else:
+                    r = getUnless(params, "COMMA", i)
+                    
+                    if len(r) > 1:
+                        r = getArgs(addAll(r, "COMMA"))
+                        r = generateType(r)
+                        r = process(r)
+                    else:
+                        args.append(vars[params[i][4:]][4:])
+                        comma = 1
+                        i += 1
+                        continue
+                    
+                    args.append(evaluate(r))
+                    i = getUnlessIndex(params, "COMMA", i)
+                    comma = 1
                 continue
         
         elif tokType(params[i]) == "STR":
-            s = params[i][4:]
+            s = params[i]
             
-            if len(params) > i+1 and params[i+1][4] == "*":
+            if len(params) > i+1 and params[i+1] == "LS":
+                bak = i
+                
+                r = generateType(slicer(params, i+2, s))
+                i = slicer(params, i+2, s, 1)
+                
+                del params[bak:i+1]
+                i = bak
+                params.insert(i, r)
+                continue
+            
+            elif len(params) > i+1 and params[i+1][4] == "*":
                 r = getUnless(params, "COMMA", i+1)
                 i = getUnlessIndex(params, "COMMA", i+1)
                 
@@ -326,7 +431,7 @@ def getArgs(params, t=""):
                 
                 s = s * int(j)
             
-            args.append(parseString(s))
+            args.append(parseString(s[4:]))
         else:
             args.append(params[i])
             
@@ -385,9 +490,9 @@ def parse(toks):
                         expr += o
                     
                     if mode == "APPEND":
-                        vars[name] = "NUM:" + splitNum(str(eval(strip(vars[name][4:]) + "+" + strip(expr))))
+                        vars[name] = "NUM:" + str(eval(strip(vars[name][4:]) + "+" + strip(expr)))
                     else:
-                        vars[name] = "NUM:" + splitNum(str(eval(strip(vars[name][4:]) + "-" + strip(expr))))
+                        vars[name] = "NUM:" + str(eval(strip(vars[name][4:]) + "-" + strip(expr)))
                     i += 2
                 
                 elif tokType(vars[name]) == "STR":

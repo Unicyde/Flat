@@ -27,9 +27,6 @@ def process(toks, minimal=0):
                 
             try:
                 toks[i] = "NUM:" + str(eval(toks[i][4:]))
-                
-                if minimal == 0:
-                    toks[i] = "NUM:" + splitNum(toks[i][4:])
             except Exception as e:
                 """ Parser will care about this """
                 
