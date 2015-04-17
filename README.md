@@ -1,8 +1,7 @@
 # Flat
 Simple programming language to match your goals.
 
-# *WARNING*
-## *DEVELOPMENT WAS STOPPED AN THIS PROJECT (new project is Dynamo) DUE TO LARGE UGLY SOURCE CODE AND BAD PROJECT PROPOSAL YOU CAN USE THE SOURCE CODE IN YOUR PROJECTS*
+## Development continues due to unmaintable code at second project *Dynamo*
 
 ## Installation
 
