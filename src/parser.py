@@ -14,6 +14,22 @@ vars = {}
 
 
 
+def multi(toks, i):
+    val = toks[i]
+    if tokType(val) == "SYM":
+        val = vars[val[4:]]
+    
+    if tokType(val) == "NUM":
+        if val[-1] == "*" or (len(toks) > i+1 and tokType(toks[i+1]) == "NUM" and toks[i+1][5] == "*"):
+            if len(toks) > i+2 and tokType(toks[i+2]) == "STR":
+                s = toks[i+2][4:]
+                val = round(float(val)) * s
+    elif tokType(val) == "STR":
+        if len(toks) > i+1 and toks[i+1][5] == "*":
+            print(toks)
+    
+    return val
+
 def evaluate(toks):
     i = 0
     expr = ""
@@ -27,6 +43,11 @@ def evaluate(toks):
                 string = 0
             elif string == 1:
                 raise TypeError("Invalid type {0}, expecting a string!".format(tokType(val)))
+            
+            if len(toks) > i+1 and toks[i+1] == "LS":
+                s = generateType(s)
+                s = slicer(toks, i+2, s)
+                i = slicer(toks, i+2, s, 1)
             
             expr += s
         
@@ -45,25 +66,8 @@ def evaluate(toks):
                     elif string == 1:
                         raise TypeError("Invalid type {0}, expecting a string!".format(tokType(val)))
                     
-                    if len(toks) > i+1 and toks[i+1][-1] == "*":
-                        if len(toks) > i+2 and tokType(toks[i+2]) == "STR":
-                            s = toks[i+2][4:]
-                            
-                            times = 0
-                            r = val[4:]
-                            
-                            try:
-                                times = eval(r)
-                            except:
-                                raise SyntaxError("Can't evaluate {0}!".format(r))
-                            
-                            s = times * s
-                            expr += s
-                            
-                            string = 1
-                            
-                            i += 3
-                            continue
+                    s = val
+                    s = multi(toks, i)
                     
                     expr += val[4:]
                 
@@ -84,7 +88,7 @@ def evaluate(toks):
                         except:
                             raise SyntaxError("Can't evaluate {0}!".format(r))
                         
-                        s = s * int(times)
+                        s = s * round(float(times))
                     
                     expr += s
                     
@@ -108,7 +112,7 @@ def evaluate(toks):
                 except:
                     raise SyntaxError("Can't evaluate {0}!".format(r))
                 
-                s = s * int(times)
+                s = s * round(float(times))
             
             expr += s
             
@@ -193,14 +197,14 @@ def slicer(r, i, s, o=0):
             s = s[4:]
             if tokType(i1) != "NUM":
                 raise TypeError("Strings can be only sliced by numbers, found %s!" % tokType(i1))
-            i1 = int(i1[4:])
+            i1 = round(float(i1[4:]))
             if i1 >= len(s):
                 raise IndexError("Maximal index is %i, found %i!" % (len(s)-1, i1))
             
             return s[i1]
         elif tokType(s) == "NUM":
             s = s[4:]
-            i1 = int(i1[4:])
+            i1 = round(float(i1[4:]))
             if i1 % 10 != 0:
                 raise ValueError("Numbers can be only sliced by power of 10, found %i!" % i1)
             return s[-(str(i1).count("0"))]
@@ -224,7 +228,7 @@ def slicer(r, i, s, o=0):
             if tokType(i1) != "NUM":
                 raise TypeError("Strings can be sliced by numbers, found %s!" % tokType(i1))
             elif i2[4:] == "":
-                return s[int(i1[4:]):]
+                return s[round(float(i1[4:])):]
             elif tokType(i2) != "NUM":
                 raise TypeError("Strings can be sliced by numbers, found %s!" % tokType(i2))
             else:
@@ -232,7 +236,7 @@ def slicer(r, i, s, o=0):
         elif tokType(s) == "NUM":
             s = s[4:]
             
-            if i1[4:] != "" and int(i1[4:]) % 10 != 0:
+            if i1[4:] != "" and round(float(i1[4:])) % 10 != 0:
                 raise ValueError("Numbers can be only sliced by power of 10, found %s!" % i1[4:])
             
             if i1[4:] != "" and tokType(i1) != "NUM":
@@ -308,9 +312,22 @@ def parseString(string):
 
 def getArgs(params, t=""):
     args = []
-
     comma = 0
-
+    
+    i = 0
+    while i < len(params):
+        if tokType(params[i]) == "SYM":
+            if params[i][4:] in vars:
+                params[i] = vars[params[i][4:]]
+            elif params[i][4:] in builtins:
+                r = getUnless(params, "SEMI", i+1)
+                
+                name = params[i][4:]
+                a = getArgs(r[1:])
+                
+                del params[i:getUnlessIndex(params, "SEMI", i+1)]
+                params.insert(i, function(name, a))
+        i += 1
     i = 0
     while i < len(params):
         if comma == 1:
@@ -319,6 +336,7 @@ def getArgs(params, t=""):
                 i += 1
                 continue
             else:
+                print(params, params[i])
                 raise SyntaxError("Expecting a comma!")
 
         if tokType(params[i]) == "NUM":
@@ -332,14 +350,27 @@ def getArgs(params, t=""):
                 del params[bak:i+1]
                 i = bak
                 params.insert(i, r)
+                #print(params)
                 continue
             else:
-                r = getUnless(params, "COMMA", i)
-                
-                args.append(evaluate(r)[4:])
+                r = process(getUnless(params, "COMMA", i))
+                bak = i
                 i = getUnlessIndex(params, "COMMA", i)
-                comma = 1
-                continue
+                expr = r
+                
+                if len(r) < 2:
+                    i = bak
+                    
+                    args.append(evaluate(expr)[4:])
+                else:
+                    #expr = getArgs(r)
+                    #print(expr)
+                    del params[bak:i+1]
+                    i = bak
+                    
+                    params.insert(i, evaluate(expr))
+                    #print(params)
+                    continue
         
         elif tokType(params[i]) == "SYM":
             if len(params) > i+1 and params[i+1] == "COLON":
@@ -358,7 +389,6 @@ def getArgs(params, t=""):
                     expr.insert(0, r)
                     
                     i = getUnlessIndex(params, "COMMA", i)
-                    
                     r = "NUM:" + evaluate(expr)
                 
                 del params[bak:i+1]
@@ -376,7 +406,7 @@ def getArgs(params, t=""):
                     
                     bak = i
                     
-                    r = slicer(params, i+2, s)
+                    r = generateType(slicer(params, i+2, s))
                     i = slicer(params, i+2, s, 1)
                     
                     del params[bak:i+1]
@@ -422,14 +452,14 @@ def getArgs(params, t=""):
                 expr = getArgs(r)[0]
                 
                 try:
-                    j = round(eval(expr[1:]))
+                    j = round(float(eval(expr[1:])))
                 except:
                     raise SyntaxError("Can't count {0}!".format(expr[1:]))
                 
                 if j > sys.maxsize:
                     raise OverflowError("Maximal integer is {0}, found {1}!".format(sys.maxsize, j))
                 
-                s = s * int(j)
+                s = s * round(float(j))
             
             args.append(parseString(s[4:]))
         else:
@@ -455,20 +485,19 @@ def parse(toks):
             name = toks[i][4:]
 
             if toks[i+1] == "COLON":
-                r = getUnless(toks, "NEWLN", i+2)
-                i = getUnlessIndex(toks, "NEWLN", i+2)
+                r = getUnless(toks, "SEMI", i+2)
+                i = getUnlessIndex(toks, "SEMI", i+2)
                 
                 args = getArgs(r)
                 function(name, args)
 
             elif toks[i+1] == "EQ":
-                r = getUnless(toks, "NEWLN", i+2)
-                i = getUnlessIndex(toks, "NEWLN", i+2)
+                r = getUnless(toks, "SEMI", i+2)
+                i = getUnlessIndex(toks, "SEMI", i+2)
                 
                 expr = getArgs(r)
                 expr = generateType(expr)
                 expr = process(expr)
-                
                 val = evaluate(expr)
                 
                 assign(name, val)
@@ -483,8 +512,8 @@ def parse(toks):
                     mode = toks[i+1]
                     
                     expr = ""
-                    r = getArgs(getUnless(toks, "NEWLN", i+2))
-                    i = getUnlessIndex(toks, "NEWLN", i+2) - 2
+                    r = getArgs(getUnless(toks, "SEMI", i+2))
+                    i = getUnlessIndex(toks, "SEMI", i+2) - 2
                     
                     for o in r:
                         expr += o
@@ -500,8 +529,8 @@ def parse(toks):
                     
                     if toks[i+1] == "APPEND":
                         expr = ""
-                        r = getArgs(getUnless(toks, "NEWLN", i+2))
-                        i = getUnlessIndex(toks, "NEWLN", i+2)
+                        r = getArgs(getUnless(toks, "SEMI", i+2))
+                        i = getUnlessIndex(toks, "SEMI", i+2)
                         
                         for o in r:
                             expr += o
@@ -511,8 +540,8 @@ def parse(toks):
                         """ Next should be number used to remove indexes from string """
                         
                         expr = ""
-                        r = int(getArgs(getUnless(toks, "NEWLN", i+2), "NUM")[0])
-                        i = getUnlessIndex(toks, "NEWLN", i+2)
+                        r = round(float(getArgs(getUnless(toks, "SEMI", i+2), "NUM")[0]))
+                        i = getUnlessIndex(toks, "SEMI", i+2)
                         
                         if r >= len(vars[name][4:]):
                             ln = len(vars[name][4:])
@@ -527,8 +556,8 @@ def parse(toks):
                 raise SyntaxError("Unexpected token {0} - expecting a '=' or ':'!".format(toks[i+1]))
         
         elif toks[i] == "IF":
-            r = getUnless(toks, "NEWLN", i)
-            i = getUnlessIndex(toks, "NEWLN", i) + 2
+            r = getUnless(toks, "SEMI", i)
+            i = getUnlessIndex(toks, "SEMI", i) + 2
             
             if r[-1] != "COLON":
                 raise SyntaxError("Syntax for 'if' is: 'if condition:'!")
@@ -585,7 +614,7 @@ def parse(toks):
         elif toks[i] == "DEDENT":
             pass
 
-        elif toks[i] == "NEWLN":
+        elif toks[i] == "SEMI":
             pass
 
         else:

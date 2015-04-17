@@ -1,3 +1,7 @@
-num = 1000
+num = input: "Enter a number: "
+str = input: "Enter a message: "
 
-print: num[num:]
+num = num[10] / num[100]
+str = str[num:]
+
+print: "Your message edited by {num} is: {str}"

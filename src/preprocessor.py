@@ -1,3 +1,4 @@
+import re
 from utils import *
 
 def process(toks, minimal=0):
@@ -5,6 +6,7 @@ def process(toks, minimal=0):
     while i < len(toks):
         if tokType(toks[i]) == "NUM":
             toks[i] = toks[i].replace("^", "**")
+            #toks[i] = re.sub(r'!//', "//", toks[i])
             
             if toks[i][4:] == "+":
                 if len(toks) > i+1 and toks[i+1] == "EQ":
@@ -69,6 +71,9 @@ def process(toks, minimal=0):
             toks[i] = "ELSE"
             toks.insert(i+1, "IF")
             continue
+        
+        elif toks[i] == "NEWLN":
+            toks[i] = "SEMI"
         
         i += 1
     
